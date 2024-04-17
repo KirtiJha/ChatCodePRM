@@ -8,13 +8,13 @@ import time
 import os
 
 st.set_page_config(
-    page_title="ChatCodePRM",
-    page_icon="images/gitpal.png",
+    page_title="ISC-CodeConnect",
+    page_icon="images/code-connect.png",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-st.image("images/chatcodeprm.png", width=200)
+st.image("images/code-connect.png", width=200)
 
 
 def main():
@@ -31,14 +31,13 @@ def main():
             st.session_state.genai_api_key = genai_api_key
 
     with st.sidebar:
-        st.image("images/chatcodeprm.png", width=300)
-        st.title("Welcome to ChatCodePRM!")
+        st.image("images/code-connect.png", width=300)
+        st.title("Welcome to ISC-CodeConnect!")
 
         st.markdown(
-            "GitPal is an advanced platform built using IBM WatsonX."
-            "It not only answers questions related to preprocessed ARB Technical Specifications, but also allows you to upload documents on the fly and chat with them."
-            "It also summarizes documents."
-            "Enter your IBM WatsonX API Key, and let SpecWiz hatch profound insights from documents, all powered by cutting-edge IBM WatsonX Gen AI"
+            "ISC-CodeConnect is an advanced platform built using IBM WatsonX. "
+            "It answers questions related to ISC Github Repositories."
+            "Choose ISC repositories, and let CodeConnect hatch profound insights from repositories, all powered by cutting-edge IBM WatsonX Gen AI"
         )
 
         user_repo = st.multiselect(
@@ -46,7 +45,7 @@ def main():
             ["Global Schema", "PRM", "Sales", "Global Core"],
         )
         if not user_repo:
-            st.info("Please select ISC repository to continue.")
+            st.info("Please select ISC repositories to continue.")
         else:
             st.session_state.user_repo = user_repo
 
@@ -56,7 +55,7 @@ def main():
                 st.session_state.embedder = embedder
                 ## Chunk and Create DB
                 with st.spinner(
-                    "Processing your repository. This may take some time.."
+                    "Processing your repositories. This may take some time.."
                 ):
                     if "clone_paths" not in st.session_state:
                         clone_paths = st.session_state.embedder.process_repo_files()
@@ -73,7 +72,7 @@ def main():
         st.session_state.messages = [
             {
                 "role": "assistant",
-                "content": "Hello. I am GitPal - Your personalized Github assistant! How may I assist you today?",
+                "content": "Hello. I am ISC CodeConnect - Your personalized ISC Code assistant! How may I assist you today?",
             }
         ]
     # Display chat messages from history on app rerun
