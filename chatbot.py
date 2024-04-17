@@ -30,6 +30,18 @@ def main():
             genai_api_key_placeholder.empty()
             st.session_state.genai_api_key = genai_api_key
 
+    if "github_access_token" not in st.session_state:
+        github_access_token_placeholder = st.empty()
+        github_access_token = github_access_token_placeholder.text_input(
+            "Github Access Token", type="password"
+        )
+        if not github_access_token:
+            st.info("Please add your Github Access Token to continue.")
+            st.stop()
+        else:
+            github_access_token_placeholder.empty()
+            st.session_state.genai_api_key = github_access_token
+
     with st.sidebar:
         st.image("images/code-connect.png", width=300)
         st.title("Welcome to ISC-CodeConnect!")
@@ -58,7 +70,9 @@ def main():
                     "Processing your repositories. This may take some time.."
                 ):
                     if "clone_paths" not in st.session_state:
-                        clone_paths = st.session_state.embedder.process_repo_files()
+                        clone_paths = st.session_state.embedder.process_repo_files(
+                            st.session_state.github_access_token
+                        )
                         st.session_state.clone_paths = clone_paths
                         st.session_state.conversation_chain = (
                             st.session_state.embedder.get_conversation_chain(

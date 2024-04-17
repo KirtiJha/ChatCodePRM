@@ -73,8 +73,8 @@ class Embedder:
         # self.delete_directory(self.clone_path)
         return self.docs
 
-    def process_repo_files(self):
-        base_url = "git@github.ibm.com:IBMSC/"
+    def process_repo_files(self, github_access_token):
+        base_url = f"https://{github_access_token}@github.ibm.com/IBMSC/"
         clone_paths = []
         for repo in self.repo_links:
             if repo == "Global Schema":
