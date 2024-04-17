@@ -41,7 +41,7 @@ def main():
                 st.stop()
             else:
                 github_access_token_placeholder.empty()
-                st.session_state.genai_api_key = github_access_token
+                st.session_state.github_access_token = github_access_token
     if "github_access_token" in st.session_state:
         with st.sidebar:
             st.image("images/code-connect.png", width=300)
