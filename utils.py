@@ -56,13 +56,11 @@ class Embedder:
             root_dir_lwc = clone_path + "/force-app/main/default/lwc"
             root_dirs.append(root_dir_classes)
             root_dirs.append(root_dir_lwc)
-            print(f"root dirs - {root_dirs}")
             for root_dir in root_dirs:
                 for dirpath, dirnames, filenames in os.walk(root_dir):
                     for file in filenames:
                         file_extension = os.path.splitext(file)[1]
                         if file_extension in allowed_extensions:
-                            print(file)
                             try:
                                 loader = TextLoader(
                                     os.path.join(dirpath, file), encoding="utf-8"
@@ -121,9 +119,7 @@ class Embedder:
         client = Client(credentials=credentials)
         # Create vector db
         docs = self.extract_all_files(clone_paths)
-        print(len(docs))
         chunked_documents = self.chunk_files(docs)
-        print(len(chunked_documents))
         embeddings = LangChainEmbeddingsInterface(
             client=client,
             model_id="sentence-transformers/all-minilm-l6-v2",
@@ -151,8 +147,6 @@ class Embedder:
             input_variables=["context", "question"], template=prompt_template
         )
         question_prompt = PromptTemplate.from_template(custom_question_prompt())
-
-        print(question_prompt)
 
         credentials = Credentials(
             api_key=gen_ai_key,
