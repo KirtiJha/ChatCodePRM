@@ -27,7 +27,7 @@ import chromadb
 
 model_name = "sentence-transformers/all-MiniLM-L6-v2"
 allowed_extensions = [".md", ".cls", ".html", ".js"]
-persist_directory = "data/vectordb/chatcodeprm/chroma/"
+persist_directory = "data/vectordb/codeconnect/chroma/"
 
 from langchain.chains import ConversationalRetrievalChain
 
@@ -156,7 +156,7 @@ class Embedder:
 
         credentials = Credentials(
             api_key=gen_ai_key,
-            api_endpoint="https://bam-api.res.ibm.com/v2/text/chat?version=2024-01-10",
+            api_endpoint="https://bam-api.res.ibm.com/v2/text/chat?version=2024-03-19",
         )
         client = Client(credentials=credentials)
 

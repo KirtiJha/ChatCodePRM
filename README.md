@@ -1,41 +1,61 @@
-## Chat with Github Repository using IBM WatsonX, Langchain, FAISS and Streamlit (RAG)
+<div align="left">
+  <img src="images/code-connect.png" alt="code-connect Logo" width="200">
+</div>
 
-Chat with any public github repository using IBM WatsonX, Langchain, FAISS vector database and Streamlit for user friendly chat interface. This is an RAG (Retrieval Augmentented Generation) application.
+## ISC-CodeConnect: Chat with IBM Sales Cloud (ISC) Github Repositories using IBM WatsonX, Langchain, ChromaDB and Streamlit (RAG)
 
-### Features
+Elevate your interaction with IBM Sales Cloud (ISC) GitHub repositories through an innovative chat interface powered by IBM WatsonX, Langchain, ChromaDB vector database, and Streamlit. This RAG (Retrieval Augmented Generation) application offers a seamless experience for exploring and understanding codebases.
 
-Users have to enter their IBM WatsonX API Key and GitHub Repository link. The repository is then cloned in your local and chunked. Then it is converted to embeddings using Langchain and stored in FAISS vector database. Langchain is then used to build a QA retriever so that users can chat with their code.
+## Features
 
-To use this chatbot, follow these steps:
+- **IBM WatsonX Integration:** Input your IBM WatsonX API Key and GitHub Access Token for seamless access.
+- **Repository Selection:** Choose one or multiple ISC GitHub repositories from the dropdown menu and initiate processing.
+- **Repository Cloning and Chunking:** Repositories are cloned locally and segmented for efficient processing.
+- **Embedding Conversion:** Utilizing Langchain, code segments are transformed into embeddings for enhanced analysis.
+- **ChromaDB Vector Database:** Embeddings are stored in a ChromaDB vector database for rapid retrieval and querying.
+- **QA Retriever:** Langchain constructs a QA retriever, enabling intuitive conversation with code segments.
+
+## ISC-CodeConnect User Interface
+
+<div align="center">
+  <img src="images/code-connect-ui.png" alt="Code-Connect UI">
+</div>
+
+## Getting Started
 
 1. Clone the repository:
 
-`git clone https://github.com/KirtiJha/chat-with-github-repo.git`
+```
+git clone https://github.com/kirtijha/ISC-CodeConnect.git
+cd <your_project_directory>
+```
+
+2. Create a new virtual environment using a tool like virtualenv or conda, and activate the environment:
+
+```
+python3 -m venv <name_of_virtual_env>
+source /venv/bin/activate
+```
 
 2. Install the required dependencies:
 
 `pip install -r requirements.txt`
 
-3. Set your environment variables in the `.env` file
-
-- Get your IBM WatsonX API Key and add it here
-
 3. Run the Streamlit app:
 
 `streamlit run chatbot.py`
 
-Access the chat interface by opening your web browser and navigating to http://localhost:8501.
+4. Access the Chat Interface:Open your web browser and navigate to http://localhost:8501.
 
-Enter your IBM WatsonX API key and the name of your GitHub repository in the provided input fields.
+- Enter your IBM WatsonX API key and GitHub Access Token in the designated input fields.
+- Engage with the chatbot by posing questions or giving instructions using natural language.
 
-Ask questions or provide instructions using natural language, and the chatbot will respond accordingly.
+## Limitations
 
-### Limitations
-
-- The codebase chatbot relies on the Language Model and its capabilities.
-- Large codebases or repositories with complex structures may take longer to chunk and embed.
-- The accuracy and quality of responses depend on the accuracy of the language model and the code embeddings.
+- Language Model Dependency: The chatbot's functionality is subject to the capabilities and accuracy of the language model.
+- Processing Complexity: Large or intricate repositories may necessitate additional time for chunking and embedding.
+- Response Quality: The accuracy and quality of responses are influenced by both the language model's performance and the effectiveness of code embeddings.
 
 ### Run App with Streamlit Cloud
 
-[Launch App on Streamlit](https://ask-codebase.streamlit.app/)
+[Launch App on Streamlit](https://ISC-CodeConnect.streamlit.app/)

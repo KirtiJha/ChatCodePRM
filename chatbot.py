@@ -45,7 +45,7 @@ def main():
     if "github_access_token" in st.session_state:
         with st.sidebar:
             st.image("images/code-connect.png", width=300)
-            st.title("Welcome to ISC-CodeConnect!")
+            st.title(""":green[Welcome to ISC-CodeConnect!]""")
 
             st.markdown(
                 "ISC-CodeConnect is an advanced platform built using IBM WatsonX. "
@@ -54,7 +54,7 @@ def main():
             )
 
             user_repo = st.multiselect(
-                "Please select ISC repository",
+                "Please select ISC repositories",
                 ["Global Schema", "PRM", "Sales", "Global Core"],
             )
             if not user_repo:
@@ -97,12 +97,24 @@ def main():
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
 
-            # Accept user input
-        if prompt := st.chat_input("Type your question here."):
+        def clear_chat_history():
+            st.session_state.messages = [
+                {
+                    "role": "assistant",
+                    "content": "Hello. I am ISC CodeConnect - Your personalized ISC Code assistant! How may I assist you today?",
+                }
+            ]
+
+        st.sidebar.button(
+            "Clear Chat History", on_click=clear_chat_history, type="primary"
+        )
+
+        # Accept user input
+        if prompt := st.chat_input("Ask question about this repository."):
             # Add user message to chat history
             st.session_state.messages.append({"role": "user", "content": prompt})
             # Display user message in chat message container
-            with st.chat_message("user", avatar="images/user.png"):
+            with st.chat_message("user"):
                 st.markdown(prompt)
 
             with st.spinner("Thinking...."):
