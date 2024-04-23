@@ -7,6 +7,8 @@ import utils
 import time
 import os
 
+persist_directory = "data/vectordb/codeconnect/chroma/"
+
 st.set_page_config(
     page_title="ISC-CodeConnect",
     page_icon="images/code-connect.png",
@@ -53,37 +55,39 @@ def main():
                 "Choose ISC repositories, and let CodeConnect hatch profound insights from repositories, all powered by cutting-edge IBM WatsonX Gen AI"
             )
 
-            user_repo = st.multiselect(
-                "Please select ISC repositories",
-                ["Global Schema", "PRM", "Sales", "Global Core"],
+            user_repo = st.selectbox(
+                "Please select ISC repository",
+                ("Global Schema", "PRM", "Sales", "Global Core"),
             )
             if not user_repo:
                 st.info("Please select ISC repositories to continue.")
             else:
                 st.session_state.user_repo = user_repo
 
+            if "embedder" not in st.session_state:
+                st.session_state.embedder = None
+
+            if "clone_paths" not in st.session_state:
+                st.session_state.clone_paths = []
+
             if st.button("Process"):
-                if "embedder" not in st.session_state:
-                    embedder = utils.Embedder(st.session_state.user_repo)
-                    st.session_state.embedder = embedder
-                    ## Chunk and Create DB
-                    with st.spinner(
-                        "Processing your repositories. This may take some time.."
-                    ):
-                        if "clone_paths" not in st.session_state:
-                            clone_paths = st.session_state.embedder.process_repo_files(
-                                st.session_state.github_access_token
-                            )
-                            st.session_state.clone_paths = clone_paths
-                            st.session_state.conversation_chain = (
-                                st.session_state.embedder.get_conversation_chain(
-                                    gen_ai_key=st.session_state.genai_api_key,
-                                    clone_paths=st.session_state.clone_paths,
-                                )
-                            )
-                            st.success(
-                                "Processing completed. Ready to take your questions"
-                            )
+                embedder = utils.Embedder(st.session_state.user_repo)
+                st.session_state.embedder = embedder
+                ## Chunk and Create DB
+                with st.spinner(
+                    "Processing your repositories. This may take some time.."
+                ):
+                    clone_paths = st.session_state.embedder.process_repo_files(
+                        st.session_state.github_access_token
+                    )
+                    st.session_state.clone_paths = clone_paths
+                    st.session_state.conversation_chain = (
+                        st.session_state.embedder.get_conversation_chain(
+                            gen_ai_key=st.session_state.genai_api_key,
+                            clone_paths=st.session_state.clone_paths,
+                        )
+                    )
+                    st.success("Processing completed. Ready to take your questions")
         # Initialize chat history
         if "messages" not in st.session_state:
             st.session_state.messages = [
@@ -119,9 +123,25 @@ def main():
 
             with st.spinner("Thinking...."):
                 # Display assistant response in chat message container
-                response = st.session_state.embedder.retrieve_results(
-                    prompt, st.session_state.conversation_chain
-                )
+                if os.path.exists(persist_directory):
+                    if st.session_state.clone_paths:
+                        response = st.session_state.embedder.retrieve_results(
+                            prompt, st.session_state.conversation_chain
+                        )
+                    else:
+                        st.session_state.embedder = utils.Embedder("Global Core")
+                        st.session_state.conversation_chain = (
+                            st.session_state.embedder.get_conversation_chain(
+                                gen_ai_key=st.session_state.genai_api_key,
+                                clone_paths=None,
+                            )
+                        )
+                        response = st.session_state.embedder.retrieve_results(
+                            prompt, st.session_state.conversation_chain
+                        )
+                else:
+                    response = """:warning: VectorDB does not exist. Please select repositories and click on 'Process' to start the conversation :warning:"""
+
                 # Add assistant response to chat history
                 message = {"role": "assistant", "content": response}
                 st.session_state.messages.append(message)

@@ -58,11 +58,13 @@ class Embedder:
             root_dir_lwc = clone_path + "/force-app/main/default/lwc"
             root_dirs.append(root_dir_classes)
             root_dirs.append(root_dir_lwc)
+            print(f"root dirs - {root_dirs}")
             for root_dir in root_dirs:
                 for dirpath, dirnames, filenames in os.walk(root_dir):
                     for file in filenames:
                         file_extension = os.path.splitext(file)[1]
                         if file_extension in allowed_extensions:
+                            print(file)
                             try:
                                 loader = TextLoader(
                                     os.path.join(dirpath, file), encoding="utf-8"
@@ -70,25 +72,25 @@ class Embedder:
                                 self.docs.extend(loader.load_and_split())
                             except Exception as e:
                                 pass
-        # self.delete_directory(self.clone_path)
+            # self.delete_directory(self.clone_path)
         return self.docs
 
     def process_repo_files(self, github_access_token):
         base_url = f"https://{github_access_token}@github.ibm.com/IBMSC/"
         clone_paths = []
-        for repo in self.repo_links:
-            if repo == "Global Schema":
-                repo_path = base_url + "global-schema.git"
-            elif repo == "PRM":
-                repo_path = base_url + "PRM.git"
-            elif repo == "Sales":
-                repo_path = base_url + "Sales.git"
-            elif repo == "Global Core":
-                repo_path = base_url + "global-core.git"
-            last_name = repo_path.split("/")[-1]
-            clone_path = last_name.split(".")[0]
-            self.clone_repo(repo_path, clone_path)
-            clone_paths.append(clone_path)
+        # for repo in self.repo_links:
+        if self.repo_links == "Global Schema":
+            repo_path = base_url + "global-schema.git"
+        elif self.repo_links == "PRM":
+            repo_path = base_url + "PRM.git"
+        elif self.repo_links == "Sales":
+            repo_path = base_url + "Sales.git"
+        elif self.repo_links == "Global Core":
+            repo_path = base_url + "global-core.git"
+        last_name = repo_path.split("/")[-1]
+        clone_path = last_name.split(".")[0]
+        self.clone_repo(repo_path, clone_path)
+        clone_paths.append(clone_path)
         return clone_paths
 
     def chunk_files(self, docs):
@@ -112,27 +114,38 @@ class Embedder:
                 os.rmdir(path)
 
     def get_conversation_chain(self, gen_ai_key, clone_paths):
-        # local_path = self.clone_path
-
-        if not os.path.exists(persist_directory):
-            os.makedirs(persist_directory)
-
         credentials = Credentials(api_key=gen_ai_key)
         client = Client(credentials=credentials)
-        # Create vector db
-        docs = self.extract_all_files(clone_paths)
-        chunked_documents = self.chunk_files(docs)
         embeddings = LangChainEmbeddingsInterface(
             client=client,
             model_id="sentence-transformers/all-minilm-l6-v2",
             parameters=TextEmbeddingParameters(truncate_input_tokens=True),
         )
 
-        vector_store = self.get_vector_db(
-            embeddings=embeddings,
-            chunked_documents=chunked_documents,
-            persist_directory=persist_directory,
-        )
+        if not clone_paths:
+            vector_store = self.get_vector_db(
+                embeddings=embeddings, persist_directory=persist_directory
+            )
+        else:
+            # Create vector db
+            docs = self.extract_all_files(clone_paths)
+            print(len(docs))
+            chunked_documents = self.chunk_files(docs)
+            print(len(chunked_documents))
+
+            if not os.path.exists(persist_directory):
+                os.makedirs(persist_directory)
+                vector_store = self.prepare_vector_db(
+                    embeddings=embeddings,
+                    chunked_documents=chunked_documents,
+                    persist_directory=persist_directory,
+                )
+            else:
+                vector_store = self.append_to_vector_db(
+                    embeddings=embeddings,
+                    chunked_documents=chunked_documents,
+                    persist_directory=persist_directory,
+                )
 
         retriever = vector_store.as_retriever()
         search_kwargs = {"k": 8}
@@ -149,6 +162,8 @@ class Embedder:
             input_variables=["context", "question"], template=prompt_template
         )
         question_prompt = PromptTemplate.from_template(custom_question_prompt())
+
+        print(question_prompt)
 
         credentials = Credentials(
             api_key=gen_ai_key,
@@ -186,7 +201,8 @@ class Embedder:
             condense_question_prompt=question_prompt,
             verbose=True,
         )
-        self.delete_directory(clone_paths)
+        if clone_paths:
+            self.delete_directory(clone_paths)
         return conversation_chain
 
     def retrieve_results(self, query, conversation_chain):
@@ -200,15 +216,27 @@ class Embedder:
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
 
-    def get_vector_db(self, embeddings, chunked_documents, persist_directory):
+    def prepare_vector_db(self, embeddings, chunked_documents, persist_directory):
         # if not os.path.exists(persist_directory):
         vector_store = create_vector_db(
             documents=chunked_documents,
             embeddings=embeddings,
             persist_directory=persist_directory,
         )
-        # else:
-        #     vector_store = Chroma(
-        #         persist_directory=persist_directory, embedding_function=embeddings
-        #     )
+
         return vector_store
+
+    def get_vector_db(self, embeddings, persist_directory):
+        vector_store = Chroma(
+            persist_directory=persist_directory, embedding_function=embeddings
+        )
+        return vector_store
+
+    def append_to_vector_db(self, embeddings, chunked_documents, persist_directory):
+        max_batch_size = 5000
+        vector_db = self.get_vector_db(embeddings, persist_directory)
+        for i in range(0, len(chunked_documents), max_batch_size):
+            batch = chunked_documents[i : i + max_batch_size]
+            vector_db.add_documents(documents=batch, embedding=embeddings)
+        # vector_db.add_documents(documents=chunked_documents, embedding=embeddings)
+        return vector_db
